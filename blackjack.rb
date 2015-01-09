@@ -11,6 +11,8 @@
 # If nobody has busted or has 21 the card values are compared, whoever has the most
 # wins, or if it is the same, it is a tie.
 
+require "pry"
+
 # deck
 # - build deck
 # - deal card
@@ -75,6 +77,10 @@ class Hand
     total
   end
 
+  def hit(deck)
+    cards << deck.deal_card
+  end
+
   def display_cards
     to_display = []
     cards.each do |a|
@@ -100,10 +106,6 @@ class Player
   def initialize
     puts "Please enter your name:"
     @name = gets.chomp
-  end
-
-  def hit(hand, deck)
-    hand << deck.deal_card
   end
 
   def stay
@@ -133,7 +135,8 @@ end
 # - compare cards
 
 class Game
-  attr_reader :player_hand, :dealer_hand, :deck
+  attr_reader :player_hand, :dealer_hand, :deck, :player, :dealer
+  attr_accessor :bust, :win
 
   def initialize
     @player = Player.new
@@ -141,16 +144,60 @@ class Game
     @deck = Deck.new
     @player_hand = Hand.new(@deck)
     @dealer_hand = Hand.new(@deck)
+    @bust = false
+    @win = false
+  end
+
+  def check_cards(whose_hand)
+    if whose_hand.calculate_total == 21
+      self.win = true
+    elsif whose_hand.calculate_total > 21
+      self.bust = true
+    end
   end
 
   def play
-    puts "Player has the following cards: #{player_hand.display_cards}."
-    puts "The total in player's hand is: #{player_hand.calculate_total}"
-    puts "The remaining cards in the deck: #{deck.deck.size}"
-    puts
+
+    while !bust && !win
+      puts "Player has the following cards: #{player_hand.display_cards}."
+      puts "The total in player's hand is: #{player_hand.calculate_total}"
+
+      begin
+        puts "Would you like to hit or stay? (h/s)"
+        response = gets.chomp.downcase
+      end until ['h', 's'].include?(response)
+
+      if response == 'h'
+        player_hand.hit(deck)
+      else
+        player.stay
+        break
+      end
+
+      check_cards(player_hand)
+    end
+
+
+    # loop
+    # check if bust
+    # elsif check if 21
+    # else ask if wants hit or stay
+    # 
+    # if stay dealer turn
+    # check if bust
+    # elsif check if 21
+    # else if < 17 hit
+
+    # if nobody busts or wins > compare cards
+
+    # display final message similar to tic tac toe
+    # either player has blackjack or dealer has blackjack
+    # or either player busts or dealer busts
+    # or either player wins or dealer wins
+    # or it's a tie!
     puts "Dealer has the following cards: #{dealer_hand.display_cards}."
     puts "The total in dealer's hand is: #{dealer_hand.calculate_total}"
-    puts "The remaining cards in the deck: #{deck.deck.size}"
+
   end
 end
 
