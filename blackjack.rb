@@ -15,6 +15,8 @@
 # - build deck
 # - deal card
 class Deck
+  attr_reader :deck
+
   VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
   SUITS = ["D", "H", "C", "S"]
 
@@ -27,22 +29,59 @@ class Deck
     end
     @deck.shuffle!
   end
+
+  def deal_card
+    @deck.pop
+  end
 end
 
 # card
 # - has value and suit
 class Card
+  attr_reader :card, :value
+
   def initialize(value, suit)
+    @value = value
     @card = "#{value}#{suit}"
   end
 end
 
-deck = Deck.new
-p deck
+# deck = Deck.new
+# p deck
 
 
 # hand
+# - hold cards
 # - calculate total
+class Hand
+  attr_accessor :cards
+
+  def initialize(deck)
+    @cards = []
+    2.times { @cards << deck.deal_card }
+  end
+
+  def calculate_total
+    total = 0
+    cards.each do |card|
+      if card.value.to_i != 0
+        total += card.value.to_i
+      elsif card.value == "A"
+        total += 11
+      else
+        total += 10
+      end
+    end
+    total
+  end
+end
+
+deck = Deck.new
+player_hand = Hand.new(deck)
+
+p player_hand
+p player_hand.calculate_total
+p deck.deck.size
 
 # player
 # - choose hit or stay
