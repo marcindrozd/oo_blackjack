@@ -49,6 +49,12 @@ class Hand
         total += 10
       end
     end
+
+    # Additional aces calculation
+    cards.select { |card| card.value == "A"}.count.times do
+      total -= 10 if total > 21
+    end 
+
     total
   end
 
