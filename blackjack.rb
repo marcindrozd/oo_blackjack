@@ -156,6 +156,31 @@ class Game
     end
   end
 
+  def display_final_message(player_hand, dealer_hand)
+    # display final message similar to tic tac toe
+    # either player has blackjack or dealer has blackjack
+    # or either player busts or dealer busts
+    # or either player wins or dealer wins
+    # or it's a tie!
+
+    if player_hand.calculate_total == 21
+      puts "Blackjack! Player wins!"
+    elsif dealer_hand.calculate_total == 21
+      puts "Blackjack! Dealer wins!"
+    elsif player_hand.calculate_total > 21
+      puts "Player busts!"
+    elsif dealer_hand.calculate_total > 21
+      puts "Dealer busts!"
+    elsif player_hand.calculate_total > dealer_hand.calculate_total
+      puts "Player wins!"
+    elsif dealer_hand.calculate_total > player_hand.calculate_total
+      puts "Dealer wins!"
+    else
+      puts "It's a tie!"
+    end
+  end
+
+
   def play
 
     while !bust && !win
@@ -177,7 +202,6 @@ class Game
       check_cards(player_hand)
     end
 
-
     # loop
     # check if bust
     # elsif check if 21
@@ -188,6 +212,16 @@ class Game
     # elsif check if 21
     # else if < 17 hit
 
+    if !bust && !win
+      puts "Dealer has the following cards: #{dealer_hand.display_cards}."
+      puts "The total in dealer's hand is: #{dealer_hand.calculate_total}"
+
+      while dealer_hand.calculate_total < 17
+        dealer_hand.hit(deck)
+      end
+    end
+
+    display_final_message(player_hand, dealer_hand)
     # if nobody busts or wins > compare cards
 
     # display final message similar to tic tac toe
@@ -195,8 +229,6 @@ class Game
     # or either player busts or dealer busts
     # or either player wins or dealer wins
     # or it's a tie!
-    puts "Dealer has the following cards: #{dealer_hand.display_cards}."
-    puts "The total in dealer's hand is: #{dealer_hand.calculate_total}"
 
   end
 end
