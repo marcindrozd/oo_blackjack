@@ -11,4 +11,23 @@
 # If nobody has busted or has 21 the card values are compared, whoever has the most
 # wins, or if it is the same, it is a tie.
 
+# deck
+# - build deck
+# - deal card
 
+# card
+# - has value and suit
+
+# hand
+# - calculate total
+
+# player
+# - choose hit or stay
+
+# dealer
+# - choose hit or stay (perhaps can be combined with the player)
+
+# game
+# - track if value is below 21
+# - ask to hit or stay
+# - compare cards
