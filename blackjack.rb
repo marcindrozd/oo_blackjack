@@ -103,8 +103,8 @@ class Dealer
 end
 
 class Game
-  attr_reader :player_hand, :dealer_hand, :deck, :player, :dealer
-  attr_accessor :bust, :win
+  attr_reader :player, :dealer
+  attr_accessor :bust, :win, :player_hand, :dealer_hand, :deck
 
   def initialize
     @player = Player.new("player")
@@ -114,6 +114,14 @@ class Game
     @dealer_hand = Hand.new(@deck)
     @bust = false
     @win = false
+  end
+
+  def reset_game
+    self.deck = Deck.new
+    self.player_hand = Hand.new(@deck)
+    self.dealer_hand = Hand.new(@deck)
+    self.bust = false
+    self.win = false
   end
 
   def check_cards(whose_hand)
@@ -149,40 +157,45 @@ class Game
 
 
   def play
-    system "clear"
-    while !bust && !win
-      system "clear"
-      # show first card from the dealer
-      display_cards_message(player_hand, "player")
+    while true
+      while !bust && !win
+        system "clear"
+        # show first card from the dealer
+        display_cards_message(player_hand, "player")
 
-      begin
-        puts "Would you like to hit or stay? (h/s)"
-        response = gets.chomp.downcase
-      end until ['h', 's'].include?(response)
+        begin
+          puts "Would you like to hit or stay? (h/s)"
+          response = gets.chomp.downcase
+        end until ['h', 's'].include?(response)
 
-      if response == 'h'
-        player_hand.hit(deck)
-      else
-        player.stay
-        break
+        if response == 'h'
+          player_hand.hit(deck)
+        else
+          player.stay
+          break
+        end
+
+        check_cards(player_hand)
       end
 
-      check_cards(player_hand)
-    end
+      if !bust && !win
+        display_cards_message(dealer_hand, "dealer")
 
-    if !bust && !win
+        while dealer_hand.calculate_total < 17
+          dealer_hand.hit(deck)
+        end
+      end
+      system "clear"
+      display_cards_message(player_hand, "player")
       display_cards_message(dealer_hand, "dealer")
 
-      while dealer_hand.calculate_total < 17
-        dealer_hand.hit(deck)
-      end
+      display_final_message(player_hand, dealer_hand)
+
+      puts "Would you like to play again? (y/n)"
+      answer = gets.chomp
+      break if answer.downcase != "y"
+      reset_game
     end
-    system "clear"
-    display_cards_message(player_hand, "player")
-    display_cards_message(dealer_hand, "dealer")
-
-    display_final_message(player_hand, dealer_hand)
-
   end
 end
 
