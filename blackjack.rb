@@ -74,23 +74,84 @@ class Hand
     end
     total
   end
+
+  def display_cards
+    to_display = []
+    cards.each do |a|
+      to_display << a.card
+    end
+    to_display.join(", ")
+  end
 end
 
-deck = Deck.new
-player_hand = Hand.new(deck)
+# deck = Deck.new
+# player_hand = Hand.new(deck)
 
-p player_hand
-p player_hand.calculate_total
-p deck.deck.size
+# p player_hand
+# p player_hand.calculate_total
+# p deck.deck.size
 
 # player
 # - choose hit or stay
 # - may also choose to bet in the future
+class Player
+  attr_reader :name
+
+  def initialize
+    puts "Please enter your name:"
+    @name = gets.chomp
+  end
+
+  def hit(hand, deck)
+    hand << deck.deal_card
+  end
+
+  def stay
+    puts "You've decided to stay."
+  end
+end
 
 # dealer
 # - choose hit or stay (perhaps can be combined with the player)
+class Dealer
+  def initialize
+    puts "Hello, I'm the dealer"
+  end
+
+  def hit(hand, deck)
+    hand << deck.deal_card
+  end
+
+  def stay
+    puts "Dealer decided to stay."
+  end
+end
 
 # game
 # - track if value is below 21
 # - ask to hit or stay
 # - compare cards
+
+class Game
+  attr_reader :player_hand, :dealer_hand, :deck
+
+  def initialize
+    @player = Player.new
+    @dealer = Dealer.new
+    @deck = Deck.new
+    @player_hand = Hand.new(@deck)
+    @dealer_hand = Hand.new(@deck)
+  end
+
+  def play
+    puts "Player has the following cards: #{player_hand.display_cards}."
+    puts "The total in player's hand is: #{player_hand.calculate_total}"
+    puts "The remaining cards in the deck: #{deck.deck.size}"
+    puts
+    puts "Dealer has the following cards: #{dealer_hand.display_cards}."
+    puts "The total in dealer's hand is: #{dealer_hand.calculate_total}"
+    puts "The remaining cards in the deck: #{deck.deck.size}"
+  end
+end
+
+Game.new.play
