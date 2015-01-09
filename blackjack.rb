@@ -14,15 +14,39 @@
 # deck
 # - build deck
 # - deal card
+class Deck
+  VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+  SUITS = ["D", "H", "C", "S"]
+
+  def initialize
+    @deck = []
+    VALUES.each do |value|
+      SUITS.each do |suit|
+        @deck << Card.new(value, suit)
+      end
+    end
+    @deck.shuffle!
+  end
+end
 
 # card
 # - has value and suit
+class Card
+  def initialize(value, suit)
+    @card = "#{value}#{suit}"
+  end
+end
+
+deck = Deck.new
+p deck
+
 
 # hand
 # - calculate total
 
 # player
 # - choose hit or stay
+# - may also choose to bet in the future
 
 # dealer
 # - choose hit or stay (perhaps can be combined with the player)
