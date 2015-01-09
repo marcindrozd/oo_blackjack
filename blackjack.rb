@@ -1,21 +1,5 @@
-# We take a deck of cards and deal 2 cards to the player and the dealer The
-# value of cards are face values, J-K are 10 and A is either 11 or 1, whichever
-# is better for the player.
-# If player's cards value is 21, he has a blackjack and wins. If it is over 21,
-# he busts and loses.
-# If player is below 21, he may choose to either hit or stay. Hit - gives another
-# card to the player. Stay - the player choses to stay with current value and it 
-# is then the dealer's turn.
-# Dealer takes additional card until he is over 17. If the dealer has 21, he wins
-# if the dealer goes over 21, he busts.
-# If nobody has busted or has 21 the card values are compared, whoever has the most
-# wins, or if it is the same, it is a tie.
-
 require "pry"
 
-# deck
-# - build deck
-# - deal card
 class Deck
   attr_reader :deck
 
@@ -37,8 +21,6 @@ class Deck
   end
 end
 
-# card
-# - has value and suit
 class Card
   attr_reader :card, :value
 
@@ -48,13 +30,6 @@ class Card
   end
 end
 
-# deck = Deck.new
-# p deck
-
-
-# hand
-# - hold cards
-# - calculate total
 class Hand
   attr_accessor :cards
 
@@ -90,31 +65,23 @@ class Hand
   end
 end
 
-# deck = Deck.new
-# player_hand = Hand.new(deck)
-
-# p player_hand
-# p player_hand.calculate_total
-# p deck.deck.size
-
-# player
-# - choose hit or stay
-# - may also choose to bet in the future
 class Player
   attr_reader :name
 
-  def initialize
-    puts "Please enter your name:"
-    @name = gets.chomp
+  def initialize(type)
+    if type == "player"
+      puts "Please enter your name:"
+      @name = gets.chomp
+    else
+      @name = "Hank the Dealer"
+    end
   end
 
   def stay
-    puts "You've decided to stay."
+    puts "#{name} decides to stay."
   end
 end
 
-# dealer
-# - choose hit or stay (perhaps can be combined with the player)
 class Dealer
   def initialize
     puts "Hello, I'm the dealer"
@@ -129,18 +96,13 @@ class Dealer
   end
 end
 
-# game
-# - track if value is below 21
-# - ask to hit or stay
-# - compare cards
-
 class Game
   attr_reader :player_hand, :dealer_hand, :deck, :player, :dealer
   attr_accessor :bust, :win
 
   def initialize
-    @player = Player.new
-    @dealer = Dealer.new
+    @player = Player.new("player")
+    @dealer = Player.new("dealer")
     @deck = Deck.new
     @player_hand = Hand.new(@deck)
     @dealer_hand = Hand.new(@deck)
@@ -156,13 +118,12 @@ class Game
     end
   end
 
-  def display_final_message(player_hand, dealer_hand)
-    # display final message similar to tic tac toe
-    # either player has blackjack or dealer has blackjack
-    # or either player busts or dealer busts
-    # or either player wins or dealer wins
-    # or it's a tie!
+  def display_cards_message(whose_hand, name)
+    puts "#{name.capitalize} has the following cards: #{whose_hand.display_cards}."
+    puts "The total in #{name}'s hand is: #{whose_hand.calculate_total}"
+  end
 
+  def display_final_message(player_hand, dealer_hand)
     if player_hand.calculate_total == 21
       puts "Blackjack! Player wins!"
     elsif dealer_hand.calculate_total == 21
@@ -182,10 +143,11 @@ class Game
 
 
   def play
-
+    system "clear"
     while !bust && !win
-      puts "Player has the following cards: #{player_hand.display_cards}."
-      puts "The total in player's hand is: #{player_hand.calculate_total}"
+      system "clear"
+      # show first card from the dealer
+      display_cards_message(player_hand, "player")
 
       begin
         puts "Would you like to hit or stay? (h/s)"
@@ -202,33 +164,18 @@ class Game
       check_cards(player_hand)
     end
 
-    # loop
-    # check if bust
-    # elsif check if 21
-    # else ask if wants hit or stay
-    # 
-    # if stay dealer turn
-    # check if bust
-    # elsif check if 21
-    # else if < 17 hit
-
     if !bust && !win
-      puts "Dealer has the following cards: #{dealer_hand.display_cards}."
-      puts "The total in dealer's hand is: #{dealer_hand.calculate_total}"
+      display_cards_message(dealer_hand, "dealer")
 
       while dealer_hand.calculate_total < 17
         dealer_hand.hit(deck)
       end
     end
+    system "clear"
+    display_cards_message(player_hand, "player")
+    display_cards_message(dealer_hand, "dealer")
 
     display_final_message(player_hand, dealer_hand)
-    # if nobody busts or wins > compare cards
-
-    # display final message similar to tic tac toe
-    # either player has blackjack or dealer has blackjack
-    # or either player busts or dealer busts
-    # or either player wins or dealer wins
-    # or it's a tie!
 
   end
 end
