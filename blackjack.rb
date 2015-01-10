@@ -1,4 +1,4 @@
-require "pry"
+# Object Oriented Blackjack
 
 class Deck
   attr_reader :deck
@@ -16,28 +16,29 @@ class Deck
     @deck.shuffle!
   end
 
-  def deal_card
+  def get_card
     @deck.pop
   end
 end
 
 class Card
-  attr_reader :card, :value
+  attr_reader :card, :value, :suit
 
   def initialize(value, suit)
     @value = value
-    @card = "#{value}#{suit}"
+    @suit = suit
+  end
+
+  def format_card
+    "=> #{value}#{suit}"
+  end
+
+  def to_s
+    format_card
   end
 end
 
-class Hand
-  attr_accessor :cards
-
-  def initialize(deck)
-    @cards = []
-    2.times { @cards << deck.deal_card }
-  end
-
+module Hand
   def calculate_total
     total = 0
     cards.each do |card|
@@ -58,144 +59,175 @@ class Hand
     total
   end
 
-  def hit(deck)
-    cards << deck.deal_card
+  def deal_card(deck)
+    cards << deck.get_card
   end
 
-  def display_cards
-    to_display = []
-    cards.each do |a|
-      to_display << a.card
-    end
-    to_display.join(", ")
+  def show_all_cards
+    puts "#{name} has the following cards"
+    puts cards
+    puts "The total for #{name} is: #{calculate_total}"
+    puts
+  end
+
+  def busted?
+    calculate_total > 21
   end
 end
 
 class Player
   attr_reader :name
+  attr_accessor :cards
+  include Hand
 
-  def initialize(type)
-    if type == "player"
-      puts "Please enter your name:"
-      @name = gets.chomp
-    else
-      @name = "Hank the Dealer"
-    end
-  end
-
-  def stay
-    puts "#{name} decides to stay."
+  def initialize
+    puts "Please enter your name:"
+    @name = gets.chomp
+    @cards = []
   end
 end
 
 class Dealer
+  attr_reader :name
+  attr_accessor :cards
+  include Hand
+
   def initialize
-    puts "Hello, I'm the dealer"
+    @name = "Dealer"
+    @cards = []
   end
 
-  def hit(hand, deck)
-    hand << deck.deal_card
-  end
-
-  def stay
-    puts "Dealer decided to stay."
+  def show_initial_cards
+    puts "#{name} has the following cards"
+    puts "=> The first card is hidden."
+    puts cards[1]
+    puts
   end
 end
 
 class Game
   attr_reader :player, :dealer
-  attr_accessor :bust, :win, :player_hand, :dealer_hand, :deck
+  attr_accessor :bust, :win, :deck
 
   def initialize
-    @player = Player.new("player")
-    @dealer = Player.new("dealer")
+    @player = Player.new
+    @dealer = Dealer.new
     @deck = Deck.new
-    @player_hand = Hand.new(@deck)
-    @dealer_hand = Hand.new(@deck)
-    @bust = false
-    @win = false
   end
 
-  def reset_game
-    self.deck = Deck.new
-    self.player_hand = Hand.new(@deck)
-    self.dealer_hand = Hand.new(@deck)
-    self.bust = false
-    self.win = false
+  def deal_initial_cards
+    puts "...Dealing initial cards..."
+    player.deal_card(deck)
+    dealer.deal_card(deck)
+    player.deal_card(deck)
+    dealer.deal_card(deck)
   end
 
-  def check_cards(whose_hand)
-    if whose_hand.calculate_total == 21
-      self.win = true
-    elsif whose_hand.calculate_total > 21
-      self.bust = true
+  def check_blackjack_or_bust(dealer_or_player)
+    if dealer_or_player.calculate_total == 21
+      if dealer_or_player.is_a?(Dealer)
+        puts "Sorry, the dealer hit blackjack. You lose!"
+      else
+        puts "Great #{player.name}! You hit blackjack!"
+      end
+      play_again?
+    elsif dealer_or_player.busted?
+      if dealer_or_player.is_a?(Dealer)
+        puts "The dealer busted! You win, #{player.name}!"
+      else
+        puts "Sorry, #{player.name}. You busted."
+      end
+      play_again?
     end
   end
 
-  def display_cards_message(whose_hand, name)
-    puts "#{name.capitalize} has the following cards: #{whose_hand.display_cards}."
-    puts "The total in #{name}'s hand is: #{whose_hand.calculate_total}"
+  def player_turn
+    puts "----------------------------------"
+    puts "#{player.name}'s turn."
+
+    check_blackjack_or_bust(player)
+
+    while !player.busted?
+      puts "Would you like to (h)it or (s)tay?"
+      response = gets.chomp.downcase
+
+      if !['h', 's'].include?(response)
+        puts "Please enter either 'h' or 's'."
+        next
+      end
+
+      if response == 's'
+        puts "#{player.name} decided to stay."
+        puts
+        break
+      end
+
+      puts "...Dealing new card to #{player.name}..."
+      player.deal_card(deck)
+      player.show_all_cards
+
+      check_blackjack_or_bust(player)
+    end
+
+    puts "#{player.name} stays. The total is: #{player.calculate_total}."
   end
 
-  def display_final_message(player_hand, dealer_hand)
-    if player_hand.calculate_total == 21
-      puts "Blackjack! Player wins!"
-    elsif dealer_hand.calculate_total == 21
-      puts "Blackjack! Dealer wins!"
-    elsif player_hand.calculate_total > 21
-      puts "Player busts!"
-    elsif dealer_hand.calculate_total > 21
-      puts "Dealer busts!"
-    elsif player_hand.calculate_total > dealer_hand.calculate_total
-      puts "Player wins!"
-    elsif dealer_hand.calculate_total > player_hand.calculate_total
-      puts "Dealer wins!"
+  def dealer_turn
+    puts "----------------------------------"
+    puts "Dealer's turn."
+    dealer.show_all_cards
+
+    check_blackjack_or_bust(dealer)
+
+    while dealer.calculate_total < 17
+      puts "...Dealing new card to the dealer..."
+      dealer.deal_card(deck)
+      dealer.show_all_cards
+
+      check_blackjack_or_bust(dealer)
+    end
+    puts "Dealer stays. The total is: #{dealer.calculate_total}."
+    puts
+  end
+
+  def check_winner
+    if player.calculate_total > dealer.calculate_total
+      puts "Great, #{player.name}. You've won!"
+    elsif dealer.calculate_total > player.calculate_total
+      puts "Sorry, #{player.name}. The dealer won!"
     else
       puts "It's a tie!"
     end
+    play_again?
   end
 
+  def play_again?
+    puts
+    puts "Would you like to play again? (y/n)"
+
+    response = gets.chomp.downcase
+
+    if response == "y"
+      self.deck = Deck.new
+      player.cards = []
+      dealer.cards = []
+      play
+    else
+      puts "Thank you for playing! Bye!"
+      exit
+    end
+  end
 
   def play
-    while true
-      while !bust && !win
-        system "clear"
-        # show first card from the dealer
-        display_cards_message(player_hand, "player")
-
-        begin
-          puts "Would you like to hit or stay? (h/s)"
-          response = gets.chomp.downcase
-        end until ['h', 's'].include?(response)
-
-        if response == 'h'
-          player_hand.hit(deck)
-        else
-          player.stay
-          break
-        end
-
-        check_cards(player_hand)
-      end
-
-      if !bust && !win
-        display_cards_message(dealer_hand, "dealer")
-
-        while dealer_hand.calculate_total < 17
-          dealer_hand.hit(deck)
-        end
-      end
-      system "clear"
-      display_cards_message(player_hand, "player")
-      display_cards_message(dealer_hand, "dealer")
-
-      display_final_message(player_hand, dealer_hand)
-
-      puts "Would you like to play again? (y/n)"
-      answer = gets.chomp
-      break if answer.downcase != "y"
-      reset_game
-    end
+    system "clear"
+    puts "Hello #{player.name}. Welcome to the game of Blackjack!"
+    puts
+    deal_initial_cards
+    player.show_all_cards
+    dealer.show_initial_cards
+    player_turn
+    dealer_turn
+    check_winner
   end
 end
 
